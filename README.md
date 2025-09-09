@@ -1,5 +1,103 @@
-# repo-testrans
 
+# repo-test-Splunk: Website Defacement
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/523985a4-07ce-4084-a36c-52a2243e502e" width="95%" alt="Boss of the SOC"/>
+</div>
+
+---
+
+# Splunk: Website Defacement
+### Splunk IR Lab — Website Defacement: From Signal to Root Cause
+**Hector M. Reyes | Boss of the SOC** | `Date`
+
+### TL;DR
+- Confirmed **Po1s0n1vy** defacement of `imreallynotbatman.com`.
+- Traced attack chain: **Acunetix scan → CMS (Joomla) → brute-force POSTs → uploaded executable (3791.exe) → defacement JPEG + dynamic DNS**.
+- Captured IoCs and turned ad-hoc hunts into repeatable detections (alerts/dashboards).
+
+**Key skills displayed:** SPL queries, web/HTTP log analysis, CMS fingerprinting, brute-force detection, threat-intel enrichment, and detection engineering.
+
+
+---
+
+## Scenario
+Today is Alice's first day at Wayne Enterprises' Security Operations Center. Lucius sits Alice down and gives her the first assignment: A memo from the Gotham City Police Department (GCPD). GCPD has found evidence online (http://pastebin.com/Gw6dWjS9) that the website www.imreallynotbatman.com hosted on Wayne Enterprises' IP address space has been compromised. The group has multiple objectives, but a key aspect of their modus operandi is defacing websites to embarrass their victim. Lucius has asked Alice to determine if www.imreallynotbatman.com (the personal blog of Wayne Corporation’s CEO) was compromised.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/516a7c9d-ed7b-4567-9546-40909bd70e6c" width="80%" alt="Website Defacement Evidence"/>
+</div>
+
+---
+
+## 🎯 Your Assignment (Objectives)
+Investigate the suspected defacement of `imreallynotbatman.com`, prove the impact and timing, and map the attacker’s route and infrastructure. Produce IoCs and a repeatable set of searches/alerts for future incidents.  
+- Confirm that a visible artifact was altered (defacement JPEG) and when.  
+- Identify scanning activity, CMS/stack, and suspected upload/auth routes.  
+- Attribute with infra signals (dynamic DNS/FQDNs, source IPs, filenames).  
+- Quantify brute-force activity and credential success windows.  
+- Package detections, containment actions, and hardening guidance.
+
+---
+
+## 📂 Evidence Artifacts
+These artifacts provide context/timeline to anchor your Splunk pivots.  
+- **GCPD memo (Po1s0n1vy):** https://botscontent.netlify.app/v1/gcpd-poisonivy-memo.html  
+- **Alice’s journal (Sep 1–13, 2016):** https://botscontent.netlify.app/v1/alice-journal.html  
+- **Pastebin tip (defacement claim):** `http://pastebin.com/Gw6dWjS9`
+
+---
+
+## 🛠️ Hunt Setup & Pre-Engagement
+I staged the environment and scoped Splunk for focused hunts, then pivoted through HTTP/IDS and auth signals to prove defacement and trace root cause.
+
+**Prep (Evidence Review):**
+- Skim **GCPD memo** + **Alice’s journal** to bracket time and suspects.  
+- Note candidate IoCs (IPs, FQDNs, filenames, hashes) for quick searches.  
+- Plan pivots: HTTP content types, user-agents, POST/Upload paths, auth bursts.
+
+**Splunk Hunt Setup:**
+- **Time window:** Sep 1–13, 2016 → tighten to exact defacement time once found.  
+- **Primary asset(s):** `imreallynotbatman.com` • Web server `dest_ip ≈ 192.168.250.70` (BOTS v1).  
+- **Data sources:** `stream:http`, `suricata`, `stream:dns` (plus server logs if present).  
+
+**Pro Tips:**
+- Use the **Fields** sidebar (e.g., `src_ip`, `useragent`, `content_type`, `http_method`).  
+- Save strong searches as **Reports** → later convert to **Alerts/Dashboards**.  
+- Track IoCs and timestamps in a scratchpad for quick cross-pivots.  
+- Validate findings with screenshots and exact event times for handoff.
+
+---
+
+# Let’s get started 👇
+
+## Defacement 101 — Find the Suspects
+**Goal:** Identify the most active source scanning the site.  
+
+**SPL**
+```spl
+index=botsv1 sourcetype=stream:http imreallynotbatman.com
+| stats count by src_ip
+| sort - count
+```
+
+Answer: 40.80.148.42
+
+
+
+
+
+
+
+
+
+
+---
+
+---
+
+
+# repo-test-Splunk: Ransomware
 
 <div align="center">
   <img src="https://github.com/user-attachments/assets/523985a4-07ce-4084-a36c-52a2243e502e" width="99%" alt="Boss of the SOC"/>
